@@ -2,7 +2,7 @@ import type { StaticImport } from "next/dist/shared/lib/get-img-props";
 
 export interface Server {
     icon: string | StaticImport;
-    id: number;
+    id: string;
     name: string;
     avatar: string;
     color: string;
@@ -24,9 +24,9 @@ export interface Server {
   
  export interface Channel {
   id: string;
-  type: "text" | "voice";
+  type: "TEXT" | "VOICE";
   name: string;
-  serverId: number; 
+  serverId: string; 
   unread?: number;
   members?: number;
 }

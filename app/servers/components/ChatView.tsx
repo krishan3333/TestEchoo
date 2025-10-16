@@ -1,22 +1,19 @@
 "use client";
 import Image from "next/image";
 import { Message } from "../types";
-import { allChannels } from "../data";
 import { RefObject, useState, useEffect } from "react";
 import { useSocket } from "@/app/components/providers/SocketProvider";
 
 interface ChatViewProps {
-  activeChannel: string;
-  // We will manage messages inside this component now
-  // messages: Message[];
+  activeChannelId: string;
+  activeChannelName: string;
   showMembers: boolean;
   setShowMembers: (show: boolean) => void;
   messageInputRef: RefObject<HTMLInputElement>;
   avatar: string;
 }
 
-const ChatView: React.FC<ChatViewProps> = ({ activeChannel, showMembers, setShowMembers, messageInputRef, avatar }) => {
-  const channelName = allChannels.find(c => c.id === activeChannel)?.name || "channel";
+const ChatView: React.FC<ChatViewProps> = ({ activeChannelId, activeChannelName, showMembers, setShowMembers, messageInputRef, avatar }) => {
   const { socket } = useSocket();
   const [messages, setMessages] = useState<Message[]>([]);
   const [content, setContent] = useState("");
@@ -24,22 +21,18 @@ const ChatView: React.FC<ChatViewProps> = ({ activeChannel, showMembers, setShow
   useEffect(() => {
     if (!socket) return;
 
-    // Join the room for the active channel
-    socket.emit('join_channel', activeChannel);
+    socket.emit('join_channel', activeChannelId);
 
-    // Listen for incoming messages
     const messageListener = (newMessage: Message) => {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
     };
     socket.on('receive_message', messageListener);
 
-    // Cleanup on component unmount or when channel changes
     return () => {
-      socket.emit('leave_channel', activeChannel);
+      socket.emit('leave_channel', activeChannelId);
       socket.off('receive_message', messageListener);
     };
-  }, [socket, activeChannel]);
-
+  }, [socket, activeChannelId]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,22 +40,21 @@ const ChatView: React.FC<ChatViewProps> = ({ activeChannel, showMembers, setShow
       const messageData: Message = {
         id: Date.now(),
         content,
-        channelId: activeChannel,
-        author: { id: 'current-user-id', name: 'You', avatar: avatar },
+        channelId: activeChannelId,
+        author: { id: 'current-user-id', name: 'You', avatar: avatar }, // Placeholder user
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         avatar: avatar,
         username: 'You'
       };
       socket.emit('send_message', messageData);
-      setContent(""); // Clear input after sending
+      setContent("");
     }
   };
-
 
   return (
     <div className="flex flex-col flex-1 h-full bg-zinc-800 overflow-hidden">
       <div className="h-12 px-4 border-b border-zinc-700 flex items-center justify-between bg-zinc-900/80 backdrop-blur-sm">
-        <span className="text-white font-medium text-sm"># {channelName}</span>
+        <span className="text-white font-medium text-sm"># {activeChannelName}</span>
         <button onClick={() => setShowMembers(!showMembers)} className="text-zinc-400 hover:text-white text-sm">
           {showMembers ? "Hide Members" : "Show Members"}
         </button>
@@ -71,7 +63,7 @@ const ChatView: React.FC<ChatViewProps> = ({ activeChannel, showMembers, setShow
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
         {messages.map((msg) => (
           <div key={msg.id} className="flex gap-3 items-start">
-            <Image src={msg.avatar} alt={msg.author.name} width={36} height={36} className="rounded-full" />
+            <Image src={msg.avatar as string} alt={msg.author.name} width={36} height={36} className="rounded-full" />
             <div>
               <div className="text-sm text-white font-medium">
                 {msg.author.name}
@@ -89,7 +81,7 @@ const ChatView: React.FC<ChatViewProps> = ({ activeChannel, showMembers, setShow
           value={content}
           onChange={(e) => setContent(e.target.value)}
           type="text"
-          placeholder={`Message #${channelName}`}
+          placeholder={`Message #${activeChannelName}`}
           className="w-full bg-zinc-900 text-sm text-white rounded-md px-3 py-2 outline-none focus:ring-1 focus:ring-indigo-500"
         />
       </form>

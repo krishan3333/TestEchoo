@@ -4,8 +4,9 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Home } from "lucide-react";
 import { ChannelList, ChatView, MemberList, ServerList } from "./components";
-import { onlineMembers, messages, allChannels as mockChannels } from "./data";
+import { onlineMembers } from "./data";
 import { useKeyPress } from "@/app/hooks/useKeyPress";
+import { Channel } from "./types";
 
 interface Server {
     id: string;
@@ -16,24 +17,23 @@ interface Server {
 const ServersView = () => {
   const router = useRouter();
   const [servers, setServers] = useState<Server[]>([]);
+  const [channels, setChannels] = useState<Channel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingChannels, setIsLoadingChannels] = useState(false);
   const [activeServerId, setActiveServerId] = useState<string | null>(null);
-  const [activeChannel, setActiveChannel] = useState("general");
+  const [activeChannelId, setActiveChannelId] = useState<string | null>(null);
   const [showMembers, setShowMembers] = useState(true);
   const messageInputRef = useRef<HTMLInputElement>(null);
 
-  // FIX: Wrapped the callback functions in useCallback for stability
   const handleKPress = useCallback((e: KeyboardEvent) => {
-    if (e.ctrlKey || e.metaKey) {
-      e.preventDefault();
-      messageInputRef.current?.focus();
-    }
-  }, []); // Empty dependency array means this function is created only once
+    if (e.ctrlKey || e.metaKey) e.preventDefault();
+    messageInputRef.current?.focus();
+  }, []); 
 
   const handleSlashPress = useCallback((e: KeyboardEvent) => {
     e.preventDefault();
     messageInputRef.current?.focus();
-  }, []); // Empty dependency array
+  }, []);
 
   useKeyPress("k", handleKPress);
   useKeyPress("/", handleSlashPress);
@@ -46,7 +46,7 @@ const ServersView = () => {
         if (response.ok) {
           const data: Server[] = await response.json();
           setServers(data);
-          if (!activeServerId && data.length > 0) {
+          if (data.length > 0 && !activeServerId) {
             setActiveServerId(data[0].id);
           }
         }
@@ -56,17 +56,43 @@ const ServersView = () => {
         setIsLoading(false);
       }
     };
-
     fetchServers();
+  }, []);
+
+  useEffect(() => {
+    if (!activeServerId) return;
+
+    const fetchChannels = async () => {
+        setIsLoadingChannels(true);
+        try {
+            const response = await fetch(`/api/servers/${activeServerId}/channels`);
+            if(response.ok) {
+                const data: Channel[] = await response.json();
+                setChannels(data);
+                if (data.length > 0) {
+                    setActiveChannelId(data[0].id);
+                } else {
+                    setActiveChannelId(null);
+                }
+            }
+        } catch (error) {
+            console.error("Failed to fetch channels:", error);
+            setChannels([]);
+            setActiveChannelId(null);
+        } finally {
+            setIsLoadingChannels(false);
+        }
+    };
+
+    fetchChannels();
   }, [activeServerId]);
 
   const currentServer = servers.find((s) => s.id === activeServerId);
-  const channels = currentServer ? mockChannels.filter((c) => c.serverId === 1) : [];
 
   if (isLoading) {
     return (
       <div className="flex h-screen w-full bg-zinc-900 text-zinc-100 items-center justify-center">
-        <p>Loading Servers...</p>
+        <p>Loading Your Universe...</p>
       </div>
     );
   }
@@ -95,17 +121,27 @@ const ServersView = () => {
             <ChannelList
               currentServer={currentServer}
               channels={channels}
-              activeChannel={activeChannel}
-              setActiveChannel={setActiveChannel}
+              activeChannelId={activeChannelId}
+              setActiveChannelId={setActiveChannelId}
+              isLoading={isLoadingChannels}
             />
             <div className="flex-1 flex flex-col">
-              <ChatView
-                activeChannel={activeChannel}
-                showMembers={showMembers}
-                setShowMembers={setShowMembers}
-                messageInputRef={messageInputRef as React.RefObject<HTMLInputElement>}
-                avatar="/default-avatar.png"
-              />
+              {activeChannelId ? (
+                <ChatView
+                  key={activeChannelId}
+                  activeChannelId={activeChannelId}
+                  activeChannelName={channels.find(c => c.id === activeChannelId)?.name || ''}
+                  showMembers={showMembers}
+                  setShowMembers={setShowMembers}
+                  messageInputRef={messageInputRef as React.RefObject<HTMLInputElement>}
+                  avatar="/default-avatar.png"
+                />
+              ) : (
+                <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
+                  <h2 className="text-xl font-semibold text-white">No channels here</h2>
+                  <p className="text-slate-400 mt-2">Create the first channel to start chatting!</p>
+                </div>
+              )}
             </div>
             {showMembers && <MemberList onlineMembers={onlineMembers} />}
           </>
@@ -122,4 +158,3 @@ const ServersView = () => {
 };
 
 export default ServersView;
-

@@ -1,21 +1,17 @@
-
-import Contests from "./contests/page";
-import AiChatWindow from "@/app/dashboard/AI/page";
-
+; // Assuming Friends component is here
+// import Fr
+import ContestsPage from "./contests/page";
 
 export default function DashboardPage() {
   return (
-    // 1. Removed justify-center and items-center
-    // 2. Added a specific gap-6 for controlled spacing
-    <div className="flex  p-4 gap-6">
-      <div className="">
-        
+    <div className="flex flex-col lg:flex-row p-4 gap-6">
+      <div className="lg:w-1/3">
+        {/* <Friends /> */}
       </div>
-      <div className="">
-        <Contests />
+      <div className="lg:w-2/3">
+        {/* We pass empty searchParams because none are needed on the main dashboard view */}
+        <ContestsPage searchParams={{}} />
       </div>
-      <AiChatWindow />
     </div>
   );
 }
-
