@@ -103,7 +103,6 @@ const ServersView = () => {
                 activeChannel={activeChannel}
                 showMembers={showMembers}
                 setShowMembers={setShowMembers}
-                messages={messages}
                 messageInputRef={messageInputRef as React.RefObject<HTMLInputElement>}
                 avatar="/default-avatar.png"
               />

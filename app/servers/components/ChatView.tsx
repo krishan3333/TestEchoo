@@ -2,23 +2,62 @@
 import Image from "next/image";
 import { Message } from "../types";
 import { allChannels } from "../data";
-
-// Import RefObject from React
-import { RefObject } from "react";
+import { RefObject, useState, useEffect } from "react";
+import { useSocket } from "@/app/components/providers/SocketProvider";
 
 interface ChatViewProps {
   activeChannel: string;
-  messages: Message[];
+  // We will manage messages inside this component now
+  // messages: Message[];
   showMembers: boolean;
   setShowMembers: (show: boolean) => void;
-  // This type is now correct for a ref created with useRef(null)
   messageInputRef: RefObject<HTMLInputElement>;
   avatar: string;
 }
 
-
-const ChatView: React.FC<ChatViewProps> = ({ activeChannel, showMembers, setShowMembers, messages, messageInputRef }) => {
+const ChatView: React.FC<ChatViewProps> = ({ activeChannel, showMembers, setShowMembers, messageInputRef, avatar }) => {
   const channelName = allChannels.find(c => c.id === activeChannel)?.name || "channel";
+  const { socket } = useSocket();
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [content, setContent] = useState("");
+
+  useEffect(() => {
+    if (!socket) return;
+
+    // Join the room for the active channel
+    socket.emit('join_channel', activeChannel);
+
+    // Listen for incoming messages
+    const messageListener = (newMessage: Message) => {
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+    };
+    socket.on('receive_message', messageListener);
+
+    // Cleanup on component unmount or when channel changes
+    return () => {
+      socket.emit('leave_channel', activeChannel);
+      socket.off('receive_message', messageListener);
+    };
+  }, [socket, activeChannel]);
+
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (content.trim() && socket) {
+      const messageData: Message = {
+        id: Date.now(),
+        content,
+        channelId: activeChannel,
+        author: { id: 'current-user-id', name: 'You', avatar: avatar },
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        avatar: avatar,
+        username: 'You'
+      };
+      socket.emit('send_message', messageData);
+      setContent(""); // Clear input after sending
+    }
+  };
+
 
   return (
     <div className="flex flex-col flex-1 h-full bg-zinc-800 overflow-hidden">
@@ -44,15 +83,16 @@ const ChatView: React.FC<ChatViewProps> = ({ activeChannel, showMembers, setShow
         ))}
       </div>
 
-      <div className="border-t border-zinc-700 p-3">
+      <form onSubmit={handleSendMessage} className="border-t border-zinc-700 p-3">
         <input
           ref={messageInputRef}
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
           type="text"
           placeholder={`Message #${channelName}`}
-
           className="w-full bg-zinc-900 text-sm text-white rounded-md px-3 py-2 outline-none focus:ring-1 focus:ring-indigo-500"
         />
-      </div>
+      </form>
     </div>
   );
 };

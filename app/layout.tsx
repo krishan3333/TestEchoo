@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "@/app/globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
-import { ModalProvider } from "@/app/components/providers/ModalProvider"; // Add this import
+import { ModalProvider } from "@/app/components/providers/ModalProvider";
+import { SocketProvider } from "@/app/components/providers/SocketProvider"; // Import SocketProvider
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,8 +32,11 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          <ModalProvider /> {/* Add this line */}
-          {children}
+          
+          <SocketProvider>
+            <ModalProvider />
+            {children}
+          </SocketProvider>
         </body>
       </html>
     </ClerkProvider>
