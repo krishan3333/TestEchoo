@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+
+  
+@layer base {
+  :root {
+    --background: hsl(220, 4%, 16%);
+    --foreground: hsl(210, 20%, 98%);
+
+    --card: hsl(225, 4%, 18%);
+    --card-foreground: hsl(210, 2%, 20%);
+
+    --popover: hsl(220, 3%, 17%);
+    --popover-foreground: hsl(210, 3%, 14%);
+
+    --primary: hsl(240, 84%, 65%);
+    --primary-foreground: hsl(210, 4%, 10%);
+
+    --secondary: hsl(215, 14%, 24%);
+    --secondary-foreground: hsl(210, 20%, 98%);
+
+    --muted: hsl(215, 14%, 24%);
+    --muted-foreground: hsl(215, 9%, 65%);
+
+    --accent: hsl(215, 14%, 24%);
+    --accent-foreground: hsl(210, 20%, 98%);
+
+    --destructive: hsl(0, 72%, 51%);
+    --destructive-foreground: hsl(210, 20%, 98%);
+
+    --border: hsl(215, 14%, 20%);
+    --input: hsl(215, 14%, 20%);
+    --ring: hsl(240, 84%, 65%);
+
+    --radius: 0.5rem;
+  }
+}
+
+
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+
+
+@layer utilities {
+  @keyframes slide-in {
+    0% {
+      transform: translateX(120%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  .animate-slide-in {
+    animation: slide-in 0.4s ease forwards;
+  }
+  
+  /* Softer borders and lines */
+  .soft-border {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .subtle-border {
+    border-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  /* Reduced contrast for better eye comfort */
+  .eye-friendly {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  
+  /* Custom scrollbar for dark theme */
+  .dark-scroll::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .dark-scroll::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+  }
+  
+  .dark-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+  }
+  
+  .dark-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
