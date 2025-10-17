@@ -3,7 +3,7 @@ import { currentUser } from '@clerk/nextjs/server';
 import { db } from '@/config/db';
 import { servers, channels, members, users } from '@/config/schema';
 import { eq } from 'drizzle-orm';
-import { v4 as uuidv4 } from 'uuid'; // Import uuid generator
+import { v4 as uuidv4 } from 'uuid'; // Import the uuid generator
 
 // --- FIX APPLIED: Added full server creation logic to POST function ---
 export async function POST(req: Request) {
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
         .values({
           ownerId: userInDb.id, 
           name,
-          imageUrl,
+          imageUrl: imageUrl || null, // Ensure imageUrl can be null
           inviteCode: uuidv4().substring(0, 8), // Generate a random invite code
         })
         .returning();
@@ -86,6 +86,7 @@ export async function GET(req: Request) {
       .leftJoin(servers, eq(members.serverId, servers.id))
       .where(eq(members.userId, userInDb.id));
     
+    // Filter out any potential null server entries
     return NextResponse.json(serverList.map(item => item.server).filter(Boolean));
 
   } catch (error) {
