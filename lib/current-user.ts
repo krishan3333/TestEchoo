@@ -2,6 +2,8 @@ import { auth } from '@clerk/nextjs/server';
 import { db } from '@/config/db';      // Your path to the Drizzle client
 import { users } from '@/config/schema'; // Your path to the Drizzle schema
 import { eq } from 'drizzle-orm';
+import { NextResponse } from 'next/server';
+
 
 /**
  * Retrieves the current user from your database based on the active Clerk session.
@@ -9,11 +11,9 @@ import { eq } from 'drizzle-orm';
  * @returns {Promise<User | null>} The user object from your database, or null if not found or not logged in.
  */
 export const currentUser = async () => {
-  const { userId: clerkId } = auth();
+  const { userId: clerkId } = await auth(); 
 
-  if (!clerkId) {
-    return null;
-  }
+  if (!clerkId) return null;
 
   // Use Drizzle to find the user in your 'users' table that matches the clerkId
   const user = await db.query.users.findFirst({
