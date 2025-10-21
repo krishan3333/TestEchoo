@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { Compass, Plus } from "lucide-react";
+import { Plus , Compass } from "lucide-react";
 import { useModal } from "@/app/hooks/use-modal-store";
 
 interface Server {
@@ -13,6 +13,7 @@ interface ServerListProps {
     servers: Server[];
     activeServerId: string | null;
     setActiveServerId: (id: string) => void;
+    openCreateModal: ()=> void
 }
   
 const ServerList: React.FC<ServerListProps> = ({ servers, activeServerId, setActiveServerId }) => {
@@ -25,15 +26,15 @@ const ServerList: React.FC<ServerListProps> = ({ servers, activeServerId, setAct
       {servers.map((server) => (
         <div key={server.id} className="relative group flex items-center">
            <div 
-             className={`absolute left-0 bg-white rounded-r-full transition-all w-1 ${
+             className={`absolute left-0  rounded-r-full transition-all w-1 ${
                activeServerId === server.id ? 'h-10' : 'h-0 group-hover:h-5'
              }`}
            />
           <button
             onClick={() => setActiveServerId(server.id)}
             className={`
-              relative flex items-center justify-center w-12 h-12 
-              bg-zinc-800 transition-all duration-200
+              relative flex items-center justify-center w-12 h-12 overflow-hidden
+              bg-neutral-700 transition-all duration-200
               ${activeServerId === server.id ? 'rounded-2xl bg-blue-600' : 'rounded-full group-hover:rounded-2xl group-hover:bg-blue-600'}
             `}
             title={server.name}

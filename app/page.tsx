@@ -49,7 +49,7 @@ export default function Home() {
           <p className="mt-8 text-gray-300 text-lg max-w-2xl">
             🚀 A <span className="text-blue-400 font-semibold">futuristic communication universe</span>  
             powered by AI. Built by <span className="text-purple-400">Krishan</span> &{" "}
-            <span className="text-purple-400">Mayank and Shivam</span> — the next-gen Network Engineering duo from DSEU.
+            <span className="text-purple-400">Mayank </span> — the next-gen Network Engineering duo from DSEU.
           </p>
         </MotionDiv>
 
@@ -100,7 +100,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="relative z-10 py-8 border-t border-slate-800 text-center text-gray-400 bg-[#040415]/70 backdrop-blur-md">
         Made with by <span className="text-blue-400 font-semibold">Krishan</span> &{" "}
-        <span className="text-purple-400 font-semibold">Mayank and Shivam</span> — DSEU Network Engineers.  
+        <span className="text-purple-400 font-semibold">Mayank</span> — DSEU Network Engineers.  
         <br />
         <span className="text-sm text-gray-500">© {new Date().getFullYear()} ECCHO • Better than Discord 😎</span>
       </footer>

@@ -4,9 +4,12 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Home } from "lucide-react";
 import { ChannelList, ChatView, MemberList, ServerList } from "./components";
-import { onlineMembers } from "./data";
+// Remove import for onlineMembers if it's still there
+// import { onlineMembers } from "./data";
 import { useKeyPress } from "@/app/hooks/useKeyPress";
 import { Channel } from "./types";
+// Make sure this import is present and correct
+import { useModal } from "@/app/hooks/use-modal-store";
 
 interface Server {
     id: string;
@@ -25,10 +28,14 @@ const ServersView = () => {
   const [showMembers, setShowMembers] = useState(true);
   const messageInputRef = useRef<HTMLInputElement>(null);
 
-  const handleKPress = useCallback((e: KeyboardEvent) => {
+  // **** ADD THIS LINE ****
+  const { onOpen } = useModal(); // Destructure onOpen from the hook
+
+  // ... (rest of your hooks: handleKPress, handleSlashPress, useKeyPress) ...
+    const handleKPress = useCallback((e: KeyboardEvent) => {
     if (e.ctrlKey || e.metaKey) e.preventDefault();
     messageInputRef.current?.focus();
-  }, []); 
+  }, []);
 
   const handleSlashPress = useCallback((e: KeyboardEvent) => {
     e.preventDefault();
@@ -38,7 +45,21 @@ const ServersView = () => {
   useKeyPress("k", handleKPress);
   useKeyPress("/", handleSlashPress);
 
-  useEffect(() => {
+
+  const addServerToList = (newServer: Server) => {
+    setServers((currentServers) => [...currentServers, newServer]);
+    // Optionally select the new server
+    // setActiveServerId(newServer.id);
+  };
+
+  // This function now correctly uses 'onOpen' from the hook call above
+  const handleOpenCreateModal = () => {
+    onOpen('createServer', { onSuccess: addServerToList });
+  };
+
+
+  // ... (rest of your useEffect hooks and component logic) ...
+   useEffect(() => {
     const fetchServers = async () => {
       setIsLoading(true);
       try {
@@ -57,7 +78,7 @@ const ServersView = () => {
       }
     };
     fetchServers();
-  }, []);
+  }, []); // Fetch servers only once
 
   useEffect(() => {
     if (!activeServerId) return;
@@ -65,15 +86,14 @@ const ServersView = () => {
     const fetchChannels = async () => {
         setIsLoadingChannels(true);
         try {
-            const response = await fetch(`/api/servers/${activeServerId}/channels`);
+            // Corrected the path from /api/servers/ to /api/server/
+            const response = await fetch(`/api/server/${activeServerId}?type=channels`);
             if(response.ok) {
                 const data: Channel[] = await response.json();
                 setChannels(data);
-                if (data.length > 0) {
-                    setActiveChannelId(data[0].id);
-                } else {
-                    setActiveChannelId(null);
-                }
+                setActiveChannelId(data[0]?.id || null); // Set first channel or null
+            } else {
+                 throw new Error(`Failed to fetch channels: ${response.statusText}`);
             }
         } catch (error) {
             console.error("Failed to fetch channels:", error);
@@ -85,7 +105,8 @@ const ServersView = () => {
     };
 
     fetchChannels();
-  }, [activeServerId]);
+  }, [activeServerId]); // Re-fetch when server changes
+
 
   const currentServer = servers.find((s) => s.id === activeServerId);
 
@@ -97,8 +118,10 @@ const ServersView = () => {
     );
   }
 
+
   return (
     <div className="flex h-screen w-full bg-zinc-900 text-zinc-100">
+      {/* ... Header ... */}
       <div className="absolute top-0 left-0 right-0 h-12 bg-zinc-900/70 backdrop-blur-md border-b border-zinc-800 z-50 flex items-center px-4">
         <button
           onClick={() => router.push("/dashboard")}
@@ -114,9 +137,12 @@ const ServersView = () => {
           servers={servers}
           activeServerId={activeServerId}
           setActiveServerId={setActiveServerId}
+          // Pass the correctly defined handler
+          openCreateModal={handleOpenCreateModal}
         />
-        
-        {currentServer ? (
+
+        {/* ... Rest of the conditional rendering for ChannelList, ChatView, MemberList ... */}
+         {currentServer ? (
           <>
             <ChannelList
               currentServer={currentServer}
@@ -138,12 +164,14 @@ const ServersView = () => {
                 />
               ) : (
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
-                  <h2 className="text-xl font-semibold text-white">No channels here</h2>
-                  <p className="text-slate-400 mt-2">Create the first channel to start chatting!</p>
+                  <h2 className="text-xl font-semibold text-white">No channels here yet!</h2>
+                  <p className="text-slate-400 mt-2">{isLoadingChannels ? 'Loading channels...' : 'Maybe create one?'}</p>
                 </div>
               )}
             </div>
-            {showMembers && <MemberList onlineMembers={onlineMembers} />}
+             {showMembers && activeServerId && (
+              <MemberList serverId={activeServerId}  />
+            )}
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
