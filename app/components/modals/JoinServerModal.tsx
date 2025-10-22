@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useModalStore } from "@/app/hooks/use-modal-store";
+import { useModal } from "@/app/hooks/use-modal-store";
 import { Input } from "@/app/components/ui/input";
 import { Button } from "@/app/components/ui/button";
 
 export const JoinServerModal = () => {
-  const { isOpen, onClose, type } = useModalStore();
+  const { isOpen, onClose, type } = useModal();
   const router = useRouter();
   const isModalOpen = isOpen && type === "joinServer";
 
