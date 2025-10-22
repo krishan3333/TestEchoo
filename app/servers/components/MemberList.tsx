@@ -1,52 +1,105 @@
+// app/servers/components/MemberList.tsx
 "use client";
 import Image from "next/image";
-import { User } from "../types";
+import { User } from "../types"; // Using the User type from types.ts
 import { useState, useEffect } from "react";
-// import {User} from "../types"
+import { Crown, Shield } from "lucide-react"; // Icons for roles
 
+interface Member extends User {
+    role?: 'owner' | 'admin' | 'guest'; // Add role from your data
+    user_id: string; // Ensure this matches the structure from API
+}
 
 interface MemberListProps {
-  
-  serverId: string; 
+  serverId: string | null; // Allow null if no server selected
 }
 
 
-const MemberList = ({ serverId }: MemberListProps) => {
-  const [members, setMembers] = useState<User[]>([])
+const MemberList: React.FC<MemberListProps> = ({ serverId }) => {
+  const [members, setMembers] = useState<Member[]>([]); // Use Member type
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchMembers = async () =>{
-      if(!serverId) return ;
+      if (!serverId) {
+          setMembers([]); // Clear members if no server is selected
+          return;
+      };
+      setIsLoading(true);
       try{
-        const response = await fetch(`/api/server/${serverId}?type=members`)
+        const response = await fetch(`/api/server/${serverId}?type=members`);
         if (response.ok){
-          const data = await response.json()
-          setMembers(data)
-
+          const data = await response.json();
+          // Assuming API returns { id, name, avatar, role (optional) }
+          // Map data to ensure structure matches Member type
+           const formattedMembers = data.map((m: any) => ({
+             id: m.id, // Assuming API returns 'id'
+             user_id: m.id, // If user_id is the same as the user's primary id
+             name: m.name,
+             avatar: m.avatar || "/default-avatar.png", // Fallback avatar
+             status: m.status || "Offline", // Assuming API provides status
+             role: m.role?.toLowerCase() || 'guest' // Assuming API provides role, default to guest
+           }));
+          setMembers(formattedMembers);
+        } else {
+             console.error("Failed to fetch members:", response.statusText);
+             setMembers([]); // Clear on error
         }
-      }catch(error){
-        console.error("Failed to Fetch members", error)
+      } catch(error){
+        console.error("Error fetching members:", error);
+        setMembers([]); // Clear on error
+      } finally {
+          setIsLoading(false);
       }
     };
-    fetchMembers()
-  }, [serverId])
+    fetchMembers();
+  }, [serverId]); // Re-fetch when serverId changes
 
 
   return (
-    <div className=" h-full w-64 bg-zinc-900 border-l border-zinc-800 flex flex-col overflow-y-auto">
-      <div className="px-4 py-3 border-b border-zinc-800 text-sm font-medium text-zinc-400">
-        ONLINE — {members.length}
+    <div className="h-full w-60 bg-gray-800 border-l border-gray-900 flex flex-col overflow-y-auto"> {/* Updated colors */}
+      {/* Header showing member count */}
+      <div className="px-4 py-3 border-b border-gray-900 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+        Members — {isLoading ? '...' : members.length}
       </div>
-      <ul className="flex-1 px-3 py-2 space-y-2">
-        {members.map((member) => (
-          <li
-            key={member.id}
-            className="flex items-center gap-3 text-zinc-300 hover:bg-zinc-800/70 rounded-md px-2 py-1 transition-colors"
-          >
-            <Image src={member.avatar} alt={member.name} width={32} height={32} className="rounded-full" />
-            <span className="text-sm font-medium">{member.name}</span>
-          </li>
-        ))}
+
+      {/* Member List */}
+      <ul className="flex-1 px-2 py-2 space-y-1">
+        {isLoading ? (
+             <p className="text-center text-gray-500 text-sm p-4">Loading members...</p>
+        ) : members.length === 0 && serverId ? (
+            <p className="text-center text-gray-500 text-sm p-4">No members found.</p>
+        ) : (
+          members.map((member) => (
+            <li
+              key={member.user_id || member.id} // Use user_id or id as key
+              className="flex items-center gap-3 text-gray-300 hover:bg-gray-700/70 rounded-md px-2 py-1.5 transition-colors group" // Adjusted padding
+            >
+              {/* Avatar with Status Indicator */}
+              <div className="relative flex-shrink-0">
+                  <Image
+                      src={member.avatar as string} // Cast avatar to string
+                      alt={member.name}
+                      width={32}
+                      height={32}
+                      className="rounded-full"
+                  />
+                   {/* Status Dot */}
+                   <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-gray-800 ${
+                       member.status === 'Online' ? 'bg-green-500' : 'bg-gray-500' // Example status logic
+                   }`} />
+              </div>
+
+              {/* Name and Role Icon */}
+              <div className="flex items-center space-x-1 overflow-hidden">
+                <span className="text-sm font-medium truncate group-hover:text-white">{member.name}</span>
+                {/* Role Icons */}
+                {member.role === 'owner' && <Crown size={14} className="text-yellow-500 flex-shrink-0" title="Server Owner"/>}
+                {member.role === 'admin' && <Shield size={14} className="text-blue-500 flex-shrink-0" title="Admin"/>}
+              </div>
+            </li>
+          ))
+        )}
       </ul>
     </div>
   );
