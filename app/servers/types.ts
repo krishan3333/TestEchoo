@@ -45,7 +45,9 @@ export interface Server {
     channelId: string; 
     author: Omit<User, 'status'>;
     timestamp: string;
-    avatar: string | StaticImport;
-    username: string;
+    userId?: string | number; // Add this if socket events use it
+    username?: string; // Add this if socket events use it
+    avatar?: string | StaticImport; // Add this if socket events use it
+    createdAt?: string;
     roles?: string[];
   }

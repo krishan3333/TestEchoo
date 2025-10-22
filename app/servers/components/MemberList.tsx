@@ -93,9 +93,17 @@ const MemberList: React.FC<MemberListProps> = ({ serverId }) => {
               {/* Name and Role Icon */}
               <div className="flex items-center space-x-1 overflow-hidden">
                 <span className="text-sm font-medium truncate group-hover:text-white">{member.name}</span>
-                {/* Role Icons */}
-                {member.role === 'owner' && <Crown size={14} className="text-yellow-500 flex-shrink-0" title="Server Owner"/>}
-                {member.role === 'admin' && <Shield size={14} className="text-blue-500 flex-shrink-0" title="Admin"/>}
+                {/* Role Icons - Wrap icons in a span with the title attribute */}
+                {member.role === 'owner' && (
+                  <span title="Server Owner"> {/* Wrap the icon */}
+                    <Crown size={14} className="text-yellow-500 flex-shrink-0" />
+                  </span>
+                )}
+                {member.role === 'admin' && (
+                  <span title="Admin"> {/* Wrap the icon */}
+                    <Shield size={14} className="text-blue-500 flex-shrink-0" />
+                  </span>
+                )}
               </div>
             </li>
           ))

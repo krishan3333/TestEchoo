@@ -53,7 +53,11 @@ const ChatView: React.FC<ChatViewProps> = ({
       const formattedMessage: Message = {
           ...newMessage,
           author: newMessage.author || { id: newMessage.userId, name: newMessage.username, avatar: newMessage.avatar }, // Handle potential structure differences
-          timestamp: newMessage.timestamp || new Date(newMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) // Format timestamp
+          timestamp: newMessage.timestamp || (
+            newMessage.createdAt
+              ? new Date(newMessage.createdAt as string).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              : ""
+          )
       }
       setMessages((prevMessages) => [...prevMessages, formattedMessage]);
     };

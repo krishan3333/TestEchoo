@@ -6,7 +6,8 @@ export type ModalType = "createServer" | "joinServer" | "createChannel"; // Adde
 
 // Define potential data needed by modals (optional)
 interface ModalData {
-  serverId?: string; // Example: Needed for createChannel
+  serverId?: string;
+  onSuccess?: (newServer?: any) => void; // Example: Needed for createChannel
   // Add other data props as needed for different modals
 }
 

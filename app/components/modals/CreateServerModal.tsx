@@ -1,14 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+// Remove useRouter, it's not needed for this logic
+// import { useRouter } from "next/navigation";
 import { useModal } from "@/app/hooks/use-modal-store";
 import { Input } from "@/app/components/ui/input";
 import { Button } from "@/app/components/ui/button";
 
 export const CreateServerModal = () => {
-  const { isOpen, onClose, type } = useModal();
-  const router = useRouter();
+  // **** GET data FROM THE HOOK ****
+  const { isOpen, onClose, type, data } = useModal();
+  const { onSuccess } = data; // Get the onSuccess callback from data
+  // const router = useRouter(); // No longer needed here
 
   const isModalOpen = isOpen && type === "createServer";
 
@@ -34,9 +37,14 @@ export const CreateServerModal = () => {
       });
 
       if (response.ok) {
+        // **** THIS IS THE FIX ****
+        const newServer = await response.json(); // Get the new server from the API response
+        if (onSuccess) {
+          onSuccess(newServer); // Pass the new server to the callback
+        }
+        // router.refresh(); // Remove this line
+        // **** END OF FIX ****
         handleClose();
-        // This will re-fetch data on the page and show the new server
-        router.refresh(); 
       } else {
         console.error("Failed to create server");
       }
