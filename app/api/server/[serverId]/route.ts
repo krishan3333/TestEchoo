@@ -1,7 +1,7 @@
 // app/api/server/[serverId]/route.ts
 import { NextResponse } from "next/server";
 import { db } from "@/config/db";
-import { channels, members, users, servers } from "@/config/schema"; // Added servers
+import { channels, members, users } from "@/config/schema"; // Added servers
 import { eq, and } from "drizzle-orm";
 import { currentUser as getClerkUser } from "@clerk/nextjs/server"; // To verify membership
 

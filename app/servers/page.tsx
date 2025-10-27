@@ -176,8 +176,8 @@ const ServersView = () => {
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
             <h2 className="text-2xl font-semibold text-white">Welcome to Echoo</h2>
-            <p className="text-slate-400 mt-2">You haven't joined any servers yet.</p>
-            <p className="text-slate-400">Click the '+' to create or the compass to join one!</p>
+            <p className="text-slate-400 mt-2">You haven&apos;t joined any servers yet.</p>
+            <p className="text-slate-400">Click the &apos;+&apos; to create or the compass to join one!</p>
           </div>
         )}
       </div>
